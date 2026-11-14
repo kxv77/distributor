@@ -31,6 +31,15 @@ jobs:
           cp -r /tmp/keep/lib lib
           cp /tmp/keep/pubspec.yaml pubspec.yaml
 
+      - name: Raise compileSdk
+        run: |
+          for f in android/app/build.gradle.kts android/app/build.gradle; do
+            if [ -f "$f" ]; then
+              sed -i -E 's/compileSdk(Version)? *=? *[^ ]+/compileSdk = 36/' "$f"
+              grep -n "compileSdk" "$f"
+            fi
+          done
+
       - run: flutter pub get
 
       - run: flutter build apk --release

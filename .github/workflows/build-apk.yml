@@ -31,7 +31,7 @@ jobs:
           cp -r /tmp/keep/lib lib
           cp /tmp/keep/pubspec.yaml pubspec.yaml
 
-      - name: Raise compileSdk
+      - name: Raise compileSdk (app and all plugins)
         run: |
           for f in android/app/build.gradle.kts android/app/build.gradle; do
             if [ -f "$f" ]; then
@@ -39,6 +39,22 @@ jobs:
               grep -n "compileSdk" "$f"
             fi
           done
+          mkdir -p ~/.gradle/init.d
+          cat > ~/.gradle/init.d/compile-sdk.gradle <<'EOF'
+          allprojects {
+              afterEvaluate { p ->
+                  def ext = p.extensions.findByName('android')
+                  if (ext != null) {
+                      try {
+                          ext.compileSdkVersion(36)
+                          println "compileSdk 36 applied to ${p.name}"
+                      } catch (Throwable t) {
+                          println "compileSdk patch skipped for ${p.name}: ${t.message}"
+                      }
+                  }
+              }
+          }
+          EOF
 
       - run: flutter pub get
 
